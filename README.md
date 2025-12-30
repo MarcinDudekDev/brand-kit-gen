@@ -30,10 +30,13 @@ Generate a complete favicon set and Open Graph image from any website URL. Extra
 | `minimal` | Clean simple gradient |
 
 <details>
-<summary>View all effects</summary>
+<summary>View all 10 effects</summary>
 
 **Aurora** (default)
 ![Aurora](docs/example-aurora.png)
+
+**Mesh**
+![Mesh](docs/example-mesh.png)
 
 **Spotlight**
 ![Spotlight](docs/example-spotlight.png)
@@ -41,8 +44,17 @@ Generate a complete favicon set and Open Graph image from any website URL. Extra
 **Waves**
 ![Waves](docs/example-waves.png)
 
+**Noise**
+![Noise](docs/example-noise.png)
+
+**Glass**
+![Glass](docs/example-glass.png)
+
 **Dots**
 ![Dots](docs/example-dots.png)
+
+**Diagonal**
+![Diagonal](docs/example-diagonal.png)
 
 **Geometric**
 ![Geometric](docs/example-geometric.png)
@@ -56,18 +68,23 @@ Generate a complete favicon set and Open Graph image from any website URL. Extra
 
 ```bash
 # Clone the repo
-git clone https://github.com/yourusername/brand-kit-gen.git
+git clone https://github.com/MarcinDudekDev/brand-kit-gen.git
 cd brand-kit-gen
 
-# Create virtual environment
+# Run install script (creates venv, installs deps + Playwright)
+./install.sh
+
+# Or manually:
 python -m venv .venv
 source .venv/bin/activate
-
-# Install dependencies
 pip install -r requirements.txt
-
-# Install Playwright browser (required for HTML rendering)
 playwright install chromium
+```
+
+### Quick Test
+
+```bash
+./test.sh https://your-site.com
 ```
 
 ## Usage
