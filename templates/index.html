@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brand Kit Generator</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <script type="module" src="https://cdn.jsdelivr.net/gh/starfederation/datastar@1.0.0-RC.7/bundles/datastar.js"></script>
+    <style>
+        :root {
+            --pico-primary: #6366f1;
+        }
+        body { padding: 2rem; }
+        .preview-grid {
+            display: grid;
+            grid-template-columns: 256px 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+        .preview-container {
+            position: relative;
+        }
+        .logo-preview {
+            width: 256px;
+            height: 256px;
+            border-radius: 8px;
+            background: repeating-conic-gradient(#eee 0% 25%, #fff 0% 50%) 50% / 10px 10px;
+            object-fit: contain;
+        }
+        .og-preview {
+            width: 100%;
+            aspect-ratio: 1200 / 630;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            object-fit: contain;
+            background: #1a1a1a;
+        }
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e0e0e0;
+            border-top-color: var(--pico-primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .color-inputs {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .color-input {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        .color-input input[type="color"] {
+            width: 60px;
+            height: 40px;
+            padding: 2px;
+            cursor: pointer;
+        }
+        .color-input input[type="text"] {
+            width: 90px;
+            font-family: monospace;
+            font-size: 0.85rem;
+        }
+        @media (max-width: 768px) {
+            .preview-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="container"
+          data-signals:url="'https://fairprice.work'"
+          data-signals:loading="false"
+          data-signals:extracted="false"
+          data-signals:name="''"
+          data-signals:tagline="''"
+          data-signals:primary="'#333333'"
+          data-signals:accent="'#666666'"
+          data-signals:background="'#ffffff'"
+          data-signals:text="'#ffffff'"
+          data-signals:theme="'light'"
+          data-signals:mood="'default'"
+          data-signals:glow="1.0"
+          data-signals:depth="1.0"
+          data-signals:decoration="1.0"
+          data-signals:gradientangle="160"
+          data-signals:font="'Inter'"
+          data-signals:fontweight="800"
+          data-signals:showaccentline="true"
+          data-signals:showbottombar="true"
+          data-signals:showblobs="true"
+          data-signals:showglow="true"
+          data-signals:bgeffect="'aurora'"
+          data-signals:effects="{}"
+          data-signals:previewkey="0"
+          data-signals:logoloading="false"
+          data-signals:ogloading="false"
+          data-on:load="fetch('/effects').then(r=>r.json()).then(d=>$effects=d)"
+    >
+        <header>
+            <h1>Brand Kit Generator</h1>
+            <p>Generate favicon set and OG images from any website URL</p>
+        </header>
+
+        <!-- URL Input -->
+        <section>
+            <form data-on:submit__prevent="
+                $loading = true;
+                fetch('/extract?url=' + encodeURIComponent($url))
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success) {
+                            $name = data.name;
+                            $tagline = data.tagline || '';
+                            $primary = data.primary;
+                            $accent = data.accent;
+                            $background = data.background;
+                            $text = data.text;
+                            $theme = data.theme;
+                            $extracted = true;
+                            $previewkey++;
+                            $logoloading = true;
+                            $ogloading = true;
+                        } else {
+                            alert('Error: ' + data.error);
+                        }
+                        $loading = false;
+                    })
+                    .catch(e => {
+                        alert('Error: ' + e.message);
+                        $loading = false;
+                    })
+            ">
+                <fieldset role="group">
+                    <input
+                        type="url"
+                        data-bind:url
+                        placeholder="https://example.com"
+                        required
+                        data-attr:disabled="$loading"
+                    >
+                    <button type="submit" data-attr:aria-busy="$loading">
+                        <span data-show="!$loading">Analyze</span>
+                        <span data-show="$loading">Analyzing...</span>
+                    </button>
+                </fieldset>
+            </form>
+        </section>
+
+        <!-- Brand Controls (shown after extraction) -->
+        <section data-show="$extracted">
+            <h2>Customize</h2>
+
+            <div class="grid">
+                <label>
+                    Brand Name
+                    <input type="text" data-bind:name data-on:input__debounce_500ms="$previewkey++; $logoloading = true; $ogloading = true">
+                </label>
+                <label>
+                    Tagline
+                    <input type="text" data-bind:tagline data-on:input__debounce_500ms="$previewkey++; $ogloading = true">
+                </label>
+            </div>
+
+            <h3>Colors</h3>
+            <div class="color-inputs">
+                <div class="color-input">
+                    <small>Primary</small>
+                    <input type="color" data-bind:primary data-on:change="$previewkey++; $logoloading = true; $ogloading = true">
+                    <input type="text" data-bind:primary data-on:input__debounce_500ms="$previewkey++; $logoloading = true; $ogloading = true">
+                </div>
+                <div class="color-input">
+                    <small>Accent</small>
+                    <input type="color" data-bind:accent data-on:change="$previewkey++; $logoloading = true; $ogloading = true">
+                    <input type="text" data-bind:accent data-on:input__debounce_500ms="$previewkey++; $logoloading = true; $ogloading = true">
+                </div>
+                <div class="color-input">
+                    <small>Background</small>
+                    <input type="color" data-bind:background data-on:change="$previewkey++; $logoloading = true; $ogloading = true">
+                    <input type="text" data-bind:background data-on:input__debounce_500ms="$previewkey++; $logoloading = true; $ogloading = true">
+                </div>
+                <div class="color-input">
+                    <small>Text</small>
+                    <input type="color" data-bind:text data-on:change="$previewkey++; $ogloading = true">
+                    <input type="text" data-bind:text data-on:input__debounce_500ms="$previewkey++; $ogloading = true">
+                </div>
+            </div>
+
+            <h3>Style</h3>
+            <div class="grid">
+                <label>
+                    Mood Preset
+                    <select data-bind:mood data-on:change="
+                        const presets = {
+                            'default': {glow: 1.0, depth: 1.0, decoration: 1.0},
+                            'minimal': {glow: 0.2, depth: 0.3, decoration: 0.3},
+                            'bold': {glow: 1.5, depth: 1.3, decoration: 1.2},
+                            'elegant': {glow: 0.6, depth: 0.5, decoration: 0.8},
+                            'neon': {glow: 2.0, depth: 0.8, decoration: 1.5}
+                        };
+                        const p = presets[$mood];
+                        $glow = p.glow;
+                        $depth = p.depth;
+                        $decoration = p.decoration;
+                        $previewkey++;
+                        $logoloading = true;
+                        $ogloading = true;
+                    ">
+                        <option value="default">Default</option>
+                        <option value="minimal">Minimal (flat, clean)</option>
+                        <option value="bold">Bold (dramatic)</option>
+                        <option value="elegant">Elegant (subtle)</option>
+                        <option value="neon">Neon (cyberpunk glow)</option>
+                    </select>
+                </label>
+                <label>
+                    Font
+                    <select data-bind:font data-on:change="$previewkey++; $logoloading = true; $ogloading = true">
+                        <option value="Inter">Inter</option>
+                        <option value="Space Grotesk">Space Grotesk</option>
+                        <option value="Playfair Display">Playfair Display</option>
+                        <option value="Montserrat">Montserrat</option>
+                        <option value="Poppins">Poppins</option>
+                        <option value="Roboto">Roboto</option>
+                        <option value="DM Sans">DM Sans</option>
+                    </select>
+                </label>
+            </div>
+
+            <label>
+                Background Effect
+                <select data-bind:bgeffect data-on:change="$previewkey++; $ogloading = true">
+                    <option value="aurora">Aurora - Smooth radial gradient blobs</option>
+                    <option value="mesh">Mesh - Multi-point gradient blend</option>
+                    <option value="noise">Noise - Grainy textured gradient</option>
+                    <option value="waves">Waves - Layered SVG wave curves</option>
+                    <option value="spotlight">Spotlight - Dramatic corner lighting</option>
+                    <option value="minimal">Minimal - Clean simple gradient</option>
+                    <option value="glass">Glass - Glassmorphism with blur</option>
+                    <option value="dots">Dots - Subtle dot pattern overlay</option>
+                    <option value="diagonal">Diagonal - Bold diagonal color split</option>
+                    <option value="geometric">Geometric - Subtle grid pattern</option>
+                </select>
+            </label>
+
+            <div class="grid">
+                <label>
+                    Glow: <span data-text="$glow.toFixed(1)"></span>
+                    <input type="range" min="0" max="2" step="0.1" data-bind:glow data-on:input="$previewkey++; $logoloading = true; $ogloading = true">
+                </label>
+                <label>
+                    Depth: <span data-text="$depth.toFixed(1)"></span>
+                    <input type="range" min="0" max="2" step="0.1" data-bind:depth data-on:input="$previewkey++; $logoloading = true; $ogloading = true">
+                </label>
+                <label>
+                    Decoration: <span data-text="$decoration.toFixed(1)"></span>
+                    <input type="range" min="0" max="2" step="0.1" data-bind:decoration data-on:input="$previewkey++; $ogloading = true">
+                </label>
+            </div>
+
+            <div class="grid">
+                <label>
+                    <input type="checkbox" data-bind:showaccentline data-on:change="$previewkey++; $ogloading = true">
+                    Show accent line
+                </label>
+                <label>
+                    <input type="checkbox" data-bind:showbottombar data-on:change="$previewkey++; $ogloading = true">
+                    Show bottom bar
+                </label>
+                <label>
+                    <input type="checkbox" data-bind:showblobs data-on:change="$previewkey++; $ogloading = true">
+                    Show background blobs
+                </label>
+                <label>
+                    <input type="checkbox" data-bind:showglow data-on:change="$previewkey++; $logoloading = true; $ogloading = true">
+                    Show text glow
+                </label>
+            </div>
+        </section>
+
+        <!-- Live Preview (PNG images with loading indicator) -->
+        <section data-show="$extracted">
+            <h2>Preview</h2>
+            <div class="preview-grid">
+                <div>
+                    <h3>Logo</h3>
+                    <div class="preview-container">
+                        <img
+                            class="logo-preview"
+                            data-attr:src="'/preview/logo?name=' + encodeURIComponent($name) + '&amp;primary=' + encodeURIComponent($primary) + '&amp;accent=' + encodeURIComponent($accent) + '&amp;background=' + encodeURIComponent($background) + '&amp;glow=' + $glow + '&amp;depth=' + $depth + '&amp;font=' + encodeURIComponent($font) + '&amp;fontWeight=' + $fontweight + '&amp;showGlow=' + $showglow + '&amp;_=' + $previewkey"
+                            data-on:load="$logoloading = false"
+                            alt="Logo preview"
+                        >
+                        <div class="loading-overlay" data-show="$logoloading">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h3>Open Graph Image</h3>
+                    <div class="preview-container">
+                        <img
+                            class="og-preview"
+                            data-attr:src="'/preview/og?name=' + encodeURIComponent($name) + '&amp;tagline=' + encodeURIComponent($tagline) + '&amp;primary=' + encodeURIComponent($primary) + '&amp;accent=' + encodeURIComponent($accent) + '&amp;background=' + encodeURIComponent($background) + '&amp;text=' + encodeURIComponent($text) + '&amp;theme=' + encodeURIComponent($theme) + '&amp;glow=' + $glow + '&amp;depth=' + $depth + '&amp;decoration=' + $decoration + '&amp;gradientAngle=' + $gradientangle + '&amp;font=' + encodeURIComponent($font) + '&amp;fontWeight=' + $fontweight + '&amp;showAccentLine=' + $showaccentline + '&amp;showBottomBar=' + $showbottombar + '&amp;showBlobs=' + $showblobs + '&amp;showGlow=' + $showglow + '&amp;bgEffect=' + $bgeffect + '&amp;_=' + $previewkey"
+                            data-on:load="$ogloading = false"
+                            alt="OG image preview"
+                        >
+                        <div class="loading-overlay" data-show="$ogloading">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Download -->
+        <section data-show="$extracted">
+            <h2>Download</h2>
+            <p>Get your complete brand kit with all favicon sizes, OG image, and manifest file.</p>
+            <a
+                role="button"
+                data-attr:href="'/download?name=' + encodeURIComponent($name) + '&amp;tagline=' + encodeURIComponent($tagline) + '&amp;primary=' + encodeURIComponent($primary) + '&amp;accent=' + encodeURIComponent($accent) + '&amp;background=' + encodeURIComponent($background) + '&amp;text=' + encodeURIComponent($text) + '&amp;theme=' + encodeURIComponent($theme) + '&amp;glow=' + $glow + '&amp;depth=' + $depth + '&amp;decoration=' + $decoration + '&amp;gradientAngle=' + $gradientangle + '&amp;font=' + encodeURIComponent($font) + '&amp;fontWeight=' + $fontweight + '&amp;showAccentLine=' + $showaccentline + '&amp;showBottomBar=' + $showbottombar + '&amp;showBlobs=' + $showblobs + '&amp;showGlow=' + $showglow + '&amp;bgEffect=' + $bgeffect"
+            >
+                Download ZIP
+            </a>
+        </section>
+
+        <footer>
+            <small>
+                Brand Kit Generator -
+                <a href="https://github.com/cminds/brand-kit-gen">GitHub</a>
+            </small>
+        </footer>
+    </main>
+</body>
+</html>
